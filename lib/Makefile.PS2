@@ -1,8 +1,64 @@
+EE_CFLAGS = -DPS2_EE_PLATFORM -DHAVE_CONFIG_H -DNEED_BE64TOH -DNEED_POLL -DNEED_WRITEV -DNEED_READV \
+	  -D_U_=/**/ -I../include -I../include/ps2 -I../include/smb2
+
 IOP_CFLAGS = -DPS2_IOP_PLATFORM -DHAVE_CONFIG_H -DNEED_BE64TOH -DNEED_STRDUP -DNEED_READV -DNEED_WRITEV -DNEED_POLL
-	  -D_U_=/**/
+	  -D_U_=/**/ 
+
 IOP_CFLAGS += -Wall -Os -I. -I../include -I../include/ps2 -I../include/smb2
 
+EE_LIB = libsmb2.a
+
 IOP_LIB = libsmb2.a
+
+EE_OBJS = aes128ccm.o \
+	aes.o \
+	alloc.o \
+	compat.o \
+	dcerpc.o \
+	dcerpc-lsa.o \
+	dcerpc-srvsvc.o \
+	errors.o \
+	hmac.o \
+	hmac-md5.o \
+	init.o \
+	krb5-wrapper.o \
+	libsmb2.o \
+	md4c.o \
+	md5.o \
+	ntlmssp.o \
+	pdu.o \
+	sha1.o \
+	sha224-256.o \
+	sha384-512.o \
+	smb2-cmd-close.o \
+	smb2-cmd-create.o \
+	smb2-cmd-echo.o \
+	smb2-cmd-error.o \
+	smb2-cmd-flush.o \
+	smb2-cmd-ioctl.o \
+	smb2-cmd-logoff.o \
+	smb2-cmd-negotiate.o \
+	smb2-cmd-query-directory.o \
+	smb2-cmd-query-info.o \
+	smb2-cmd-read.o \
+	smb2-cmd-session-setup.o \
+	smb2-cmd-set-info.o \
+	smb2-cmd-tree-connect.o \
+	smb2-cmd-tree-disconnect.o \
+	smb2-cmd-write.o \
+	smb2-data-file-info.o \
+	smb2-data-filesystem-info.o \
+	smb2-data-security-descriptor.o \
+	smb2-data-reparse-point.o \
+	smb2-share-enum.o \
+	smb3-seal.o \
+	smb2-signing.o \
+	timestamps.o \
+	unicode.o \
+	usha.o \
+	socket.o \
+	sync.o
+
 IOP_OBJS =  aes.o \
             aes128ccm.o \
             alloc.o \
@@ -52,12 +108,28 @@ IOP_OBJS =  aes.o \
             unicode.o \
             usha.o
 
-all: $(IOP_LIB)
+all_ee: $(EE_LIB) $(EE_OBJS)
 
-clean:
-	rm -f -r $(IOP_BIN) $(IOP_LIB) $(IOP_OBJS) obj
+install_ee: all_ee
+ifeq ($(PS2SDK),)
+	@echo "$PS2SDK is not set. Can not install libsmb2."
+	@exit 1
+endif
+	@echo Copying...
+	@[ -d $(PS2SDK)/ee/include/smb2 ] || mkdir -p $(PS2SDK)/ee/include/smb2
+	@cp -frv ../include/smb2/*.h $(PS2SDK)/ee/include/smb2
+	@cp -frv *.a $(PS2SDK)/ee/lib
+	@echo Done!
 
-install: all
+clean_ee:
+	rm -rf *.a $(EE_OBJS)
+
+all_iop: $(IOP_LIB)
+
+clean_iop:
+	rm -f -r $(IOP_BIN) $(IOP_LIB) $(IOP_OBJS) obj_iop
+
+install_iop: all_iop
 ifeq ($(PS2SDK),)
 	@echo "$PS2SDK is not set. Can not install libsmb2."
 	@exit 1
@@ -68,6 +140,19 @@ endif
 	@cp -frv *.a $(PS2SDK)/iop/lib
 	@echo Done!
 
+all: all_ee all_iop
+
+install: install_ee install_iop
+
+clean: clean_ee clean_iop
+
+reset:
+	ps2client reset
+
 include $(PS2SDK)/Defs.make
 include $(PS2SDK)/samples/Makefile.pref
+include $(PS2SDK)/samples/Makefile.eeglobal
 include $(PS2SDK)/samples/Makefile.iopglobal
+
+
+

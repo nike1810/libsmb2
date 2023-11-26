@@ -53,14 +53,14 @@ jobs:
     - name: Compile PS2 EE Side
       run: |
         cd lib
-        make -f Makefile.PS2_EE clean
-        make -f Makefile.PS2_EE
+        make -f Makefile.PS2 clean
+        make -f Makefile.PS2 all_ee
 
     - name: Compile PS2 IOP Side
       run: |
         cd lib
-        make -f Makefile.PS2_IOP clean
-        make -f Makefile.PS2_IOP
+        make -f Makefile.PS2 clean
+        make -f Makefile.PS2 all_iop
 
   build-ps3-ppu:
     name: PS3 PPU build
